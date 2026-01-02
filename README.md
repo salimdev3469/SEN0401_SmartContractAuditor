@@ -1,13 +1,17 @@
-# SEN0401_SmartContractAuditor# 🛡️ AI-Powered Smart Contract Auditor
+# SEN0401_SmartContractAuditor
+# 🛡️ AI-Powered Smart Contract Auditor
 
 ![Project Status](https://img.shields.io/badge/Status-Completed-success)
 ![Python](https://img.shields.io/badge/Backend-Python-blue)
 ![React](https://img.shields.io/badge/Frontend-React-61DAFB)
 ![AI](https://img.shields.io/badge/AI-Google%20Gemini-orange)
+![Deploy](https://img.shields.io/badge/Deploy-Render-white)
 
 **AI-Powered Smart Contract Auditor**, Ethereum (Solidity) akıllı kontratlarını güvenlik açıklarına karşı analiz eden, risk puanlaması yapan ve güvenli kod önerileri sunan yapay zeka destekli bir araçtır.
 
 Bu proje, **Google Gemini LLM** teknolojisini statik kod analiz prensipleriyle birleştirerek geliştiricilere saniyeler içinde detaylı bir güvenlik raporu sunar.
+
+🔗 **Canlı Demo:** [Smart Contract Auditor'ı İncele](https://smart-contract-auditor-wm14.onrender.com)
 
 ---
 
@@ -24,16 +28,19 @@ Bu proje, **Google Gemini LLM** teknolojisini statik kod analiz prensipleriyle b
 ## 🛠️ Kullanılan Teknolojiler
 
 * **Frontend:** React.js, Tailwind CSS (veya Material UI), Axios
-* **Backend:** Python (FastAPI/Flask), Pydantic
-* **AI Engine:** Google Gemini Pro API
-* **Blockchain:** Solidity, Ethereum Sepolia Testnet (Test Kontratları için)
+* **Backend:** Python (FastAPI), Uvicorn, Pydantic
+* **AI Engine:** Google Gemini 1.5 Flash API
+* **Deployment:** Render (Web Service & Static Site)
 
 ---
 
 ## ⚙️ Kurulum ve Çalıştırma
 
-Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları takip edin.
+Projeyi yerel makinenizde (Localhost) çalıştırmak için aşağıdaki adımları takip edin.
 
 ### 1. Projeyi Klonlayın
+Öncelikle projeyi bilgisayarınıza indirin ve proje klasörüne girin:
+
 ```bash
-git clone https://github.com/salimdev3469/SEN0401_SmartContractAuditor.git
+git clone [https://github.com/salimdev3469/SEN0401_SmartContractAuditor.git](https://github.com/salimdev3469/SEN0401_SmartContractAuditor.git)
+cd SEN0401_SmartContractAuditor
