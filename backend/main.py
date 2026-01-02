@@ -22,6 +22,20 @@ if api_key:
 
 app = FastAPI()
 
+origins = [
+    "https://smart-contract-auditor-wm14.onrender.com",  # Senin Frontend Adresin
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, # Listeyi buraya verdik
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Frontend erişimi için gerekli
