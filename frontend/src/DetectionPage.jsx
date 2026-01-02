@@ -9,8 +9,11 @@ import Footer from './components/Footer';
 import sca from './assets/sca.png';
 import { toast } from "react-toastify";
 
-
 ChartJS.register(ArcElement, Tooltip, Legend);
+
+// --- ÖNEMLİ DEĞİŞİKLİK: BACKEND URL TANIMLAMASI ---
+// Eğer Vite kullanıyorsan .env dosyasından çeker, yoksa direkt linki kullanır.
+const API_URL = "https://smart-contract-auditor-wm14.onrender.com"; 
 
 const DetectionPage = () => {
     const [code, setCode] = useState('');
@@ -86,15 +89,18 @@ const DetectionPage = () => {
         setImprovedCode(null);
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/analyze", {
+            // DEĞİŞİKLİK BURADA: Localhost yerine API_URL kullanıldı
+            const response = await fetch(`${API_URL}/analyze`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ code, user_id: "default_user" }),
             });
             const data = await response.json();
             setResult(data);
-        } catch {
+        } catch (error) {
+            console.error("Analyze Error:", error);
             setResult({ status: 'Error', issues: [], risk_score: 0 });
+            toast.error("Connection failed! Check backend URL.");
         } finally {
             setLoading(false);
         }
@@ -113,7 +119,8 @@ const DetectionPage = () => {
         setImprovedCode(null);
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/improve", {
+            // DEĞİŞİKLİK BURADA: Localhost yerine API_URL kullanıldı
+            const response = await fetch(`${API_URL}/improve`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -124,8 +131,10 @@ const DetectionPage = () => {
             });
             const data = await response.json();
             setImprovedCode(data.improved_code);
-        } catch {
+        } catch (error) {
+            console.error("Improve Error:", error);
             setImprovedCode("// Error improving code.");
+            toast.error("Improvement failed!");
         } finally {
             setImproving(false);
         }
