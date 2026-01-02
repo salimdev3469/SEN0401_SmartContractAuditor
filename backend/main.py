@@ -13,32 +13,27 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 
 if not api_key:
-    # Render loglarında hatayı görmek için print ekledim, yapı bozulmadı.
-    print("❌ GEMINI_API_KEY is missing!")
-    # raise ValueError iptal etmedim, ama Render'da env var tanımlıysa sorun olmaz.
+    # Render loglarında hatayı görmek için print ekledik
+    print("❌ GEMINI_API_KEY is missing! Create a .env file with your key.")
 
+# API Key varsa configure et
 if api_key:
     genai.configure(api_key=api_key)
 
 app = FastAPI()
 
+# --- DÜZELTME 1: Frontend Adresini Açıkça Belirtiyoruz ---
+# Hata mesajındaki "origin" adresini buraya ekledik.
 origins = [
     "https://smart-contract-auditor-wm14.onrender.com",  # Senin Frontend Adresin
     "http://localhost:3000",
     "http://localhost:5173",
+    "*"  # Yedek olarak kalsın
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins, # Listeyi buraya verdik
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], # Frontend erişimi için gerekli
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,10 +60,10 @@ def clean_gemini_output(text: str):
         return match.group(0)
     return text
 
-# --- EKLEME: Render'ın "Ben Çalışıyorum" demesi için gerekli ana sayfa ---
+# --- Render Sağlık Kontrolü İçin Root Endpoint ---
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Backend Çalışıyor"}
+    return {"status": "ok", "message": "Backend Calisiyor"}
 
 @app.post("/analyze")
 async def analyze_code_endpoint(req: CodeRequest):
@@ -94,18 +89,18 @@ Code:
     ]
 }}
 """
-    # DÜZELTME: Model ismi 2.5 -> 1.5 olarak güncellendi (API hatasını önlemek için)
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(prompt)
-    raw = response.text
-    cleaned = clean_gemini_output(raw)
-
+    # --- DÜZELTME 2: Model İsmi (2.5 henüz yok, 1.5 kararlı sürüm) ---
+    # Yanlış model ismi sunucuyu çökertip CORS hatasına sebep oluyordu.
     try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(prompt)
+        raw = response.text
+        cleaned = clean_gemini_output(raw)
         result = json.loads(cleaned)
     except Exception as e:
-        print("❌ JSON parse error:", e)
-        print("Model returned:", raw)
-        result = {"status": "Error", "risk_score": 0, "issues": []}
+        print("❌ Model/JSON Error:", e)
+        # Hata durumunda frontend çökmesin diye güvenli cevap
+        result = {"status": "Error", "risk_score": 0, "issues": [{"issue": "Service Unavailable", "risk": "High", "solution": "Check API Key or Backend Logs", "line": 0}]}
 
     # Context’e ekle
     context_history.append({
@@ -142,10 +137,13 @@ The analysis returned the following issues:
 Please rewrite the Solidity code fixing ALL the above issues.
 Return **only** the corrected code, nothing else.
 """
-    # DÜZELTME: Model ismi 2.5 -> 1.5 olarak güncellendi
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(prompt)
-    improved_code = response.text.strip() if response.text else "// Could not generate improved code"
+    # --- DÜZELTME 2: Model İsmi (Burada da 1.5 yaptık) ---
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(prompt)
+        improved_code = response.text.strip() if response.text else "// Could not generate improved code"
+    except Exception as e:
+        improved_code = f"// Error: {str(e)}"
 
     # Context’e ekle
     context_history.append({
