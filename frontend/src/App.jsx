@@ -4,6 +4,7 @@ import DetectionPage from './DetectionPage.jsx';
 import LandingPage from './LandingPage.jsx';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import './App.css';
 
 
 function App() {

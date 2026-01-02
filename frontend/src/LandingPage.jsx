@@ -1,86 +1,104 @@
 
-
-import Navbar from './components/Navbar.jsx';
-import Banner from './components/Banner.jsx';
-import { useRef } from "react";
-import Benefit from './components/Benefit.jsx';
-import { Shield, Zap, Code } from "lucide-react";
-import FlowSection from './components/FlowSection.jsx';
-import QACard from './components/QACard.jsx';
-import Footer from './components/Footer.jsx';
+import { useNavigate } from 'react-router-dom';
+import { Layers, ShieldCheck, Zap, Terminal, Code2, Lock } from 'lucide-react';
 
 const LandingPage = () => {
+    const navigate = useNavigate();
 
-    const blockchainRef = useRef(null);
-    const smartContractRef = useRef(null);
-
-    const qaList = [
-        {
-            question: "What is Blockchain?",
-            answer: "A blockchain is a distributed ledger with growing lists of records (blocks) that are securely linked together via cryptographic hashes. Each block contains a cryptographic hash of the previous block, a timestamp, and transaction data (generally represented as a Merkle tree, where data nodes are represented by leaves). Since each block contains information about the previous block, they effectively form a chain (compare linked list data structure), with each additional block linking to the ones before it."
-        },
-        {
-            question: "What is a Smart Contract?",
-            answer: "A smart contract is a computer program or a transaction protocol that is intended to automatically execute, control or document events and actions according to the terms of a contract or an agreement. The objectives of smart contracts are the reduction of need for trusted intermediators, arbitration costs, and fraud losses, as well as the reduction of malicious and accidental exceptions."
-        }
-    ];
     return (
-        <>
-            <Navbar
-                onBlockchainClick={() =>
-                    blockchainRef.current?.scrollIntoView({ behavior: "smooth" })
-                }
-                onSmartContractClick={() =>
-                    smartContractRef.current?.scrollIntoView({ behavior: "smooth" })
-                }
-            />
-            <Banner />
-            <h2 style={{ textAlign: "center" }}>What do we offer?</h2>
-            <div className='benefits-grid'>
-                <Benefit
-                    icon="🛡️"
-                    title="AI Security"
-                    description="Your smart contracts are scanned for vulnerabilities."
-                />
-                <Benefit
-                    icon="⚡"
-                    title="High Performance"
-                    description="Lightning-fast Gemini Flash API processing."
-                />
-                <Benefit
-                    icon="🔧"
-                    title="Auto Fix"
-                    description="Detected issues are automatically fixed by AI."
-                />
+        <div className="landing-page">
+            <nav id="navbar">
+                <div id="logo">
+                    <ShieldCheck size={24} color="#fff" />
+                    SMART AUDITOR <span>v2.0</span>
+                </div>
+                {/* Links removed as requested */}
+                <div style={{ flex: 1 }}></div>
+                <button className="nav-cta" onClick={() => navigate('/detect')}>
+                    Launch App
+                </button>
+            </nav>
+
+            <header className="hero-section">
+                <div className="hero-bg-shapes">
+                    <div className="shape-1"></div>
+                    <div className="shape-2"></div>
+                    <div className="shape-3"></div>
+                </div>
+                <div className="hero-tagline">AI-Powered Security Engine</div>
+                <h1 className="hero-title">
+                    Secure Your Smart Contracts<br />
+                    At The Speed Of Code.
+                </h1>
+                <p className="hero-desc">
+                    Find vulnerabilities instantly. Optimize gas logic automagically.
+                    The most advanced auditing suite for Web3 developers.
+                </p>
+                <div className="hero-buttons">
+                    <button className="btn-primary" onClick={() => navigate('/detect')}>
+                        Start Auditing
+                    </button>
+                </div>
+            </header>
+
+            <div className="stats-bar">
+                <div className="stat-item">
+                    <div className="stat-val">$24B+</div>
+                    <div className="stat-label">Assets Secured</div>
+                </div>
+                <div className="stat-item">
+                    <div className="stat-val">10M+</div>
+                    <div className="stat-label">Lines Analyzed</div>
+                </div>
+                <div className="stat-item">
+                    <div className="stat-val">0s</div>
+                    <div className="stat-label">Deploy Latency</div>
+                </div>
             </div>
-            <FlowSection />
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                    gap: '30px',
-                    padding: '40px'
-                }}
-            >
-                {/* QACard 1 - Blockchain */}
-                <div ref={blockchainRef}>
-                    <QACard
-                        question={qaList[0].question}
-                        answer={qaList[0].answer}
-                    />
+
+            <section className="features-section">
+                <div className="section-header">
+                    <h2>Engineered for Scale</h2>
+                    <p>Our detection engine runs on Gemini Flash 1.5 architecture.</p>
                 </div>
 
-                {/* QACard 2 - Smart Contract */}
-                <div ref={smartContractRef}>
-                    <QACard
-                        question={qaList[1].question}
-                        answer={qaList[1].answer}
-                    />
+                <div className="bento-grid">
+                    <div className="bento-card large">
+                        <div className="card-icon"><Zap size={32} /></div>
+                        <div className="card-content">
+                            <h3>Real-Time Analysis</h3>
+                            <p>Get instant feedback as you type. Our AI pipeline analyzes your Solidity code in milliseconds, identifying critical reentrancy attacks and overflow vulnerabilities before deployment.</p>
+                        </div>
+                    </div>
+                    <div className="bento-card">
+                        <div className="card-icon"><Lock size={32} /></div>
+                        <div className="card-content">
+                            <h3>Bank-Grade Security</h3>
+                            <p>Military grade encryption for your intellectual property.</p>
+                        </div>
+                    </div>
+                    <div className="bento-card">
+                        <div className="card-icon"><Terminal size={32} /></div>
+                        <div className="card-content">
+                            <h3>CLI Integration</h3>
+                            <p>coming soon: Run audits directly from your terminal.</p>
+                        </div>
+                    </div>
+                    <div className="bento-card large">
+                        <div className="card-icon"><Code2 size={32} /></div>
+                        <div className="card-content">
+                            <h3>Auto-Remediation</h3>
+                            <p>Don't just find bugs, fix them. Our engine proposes optimized code snippets that you can apply with a single click, maintaining 100% logic integrity.</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <Footer />
-        </>
+            </section>
+
+            <footer>
+                <p>&copy; 2025 Smart Contract Auditor Inc. All systems normal.</p>
+            </footer>
+        </div>
     );
-}
+};
 
 export default LandingPage;

@@ -73,7 +73,7 @@ async def analyze_code_endpoint(req: CodeRequest):
     prompt = f"""
 You are a professional blockchain smart contract auditor.
 Here is the previous context (previous analyses and improvements):
-{json.dumps(context_history, indent=2)}
+{json.dumps(context_history[-5:], indent=2)}
 
 Analyze the following Solidity code for security vulnerabilities:
 
@@ -83,7 +83,7 @@ Code:
 ### OUTPUT FORMAT (MUST BE STRICT JSON)
 {{
     "status": "Safe / Warning / Critical",
-    "risk_score": number_from_0_to_100,
+    "risk_score": number_from_0_to_100 (0 means extremely safe, 100 means extremely critical),
     "issues": [
         {{"issue": "Short vulnerability name", "risk": "Low / Medium / High", "solution": "How to fix", "line": line_number_or_null}}
     ]
@@ -125,7 +125,7 @@ async def improve_code_endpoint(req: ImproveRequest):
     prompt = f"""
 You are a professional blockchain smart contract auditor and Solidity developer.
 Here is the previous context (previous analyses and improvements):
-{json.dumps(context_history, indent=2)}
+{json.dumps(context_history[-5:], indent=2)}
 
 Here is the original code to improve:
 

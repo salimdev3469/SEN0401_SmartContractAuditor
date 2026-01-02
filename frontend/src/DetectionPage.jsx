@@ -1,125 +1,109 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './App.css';
-import { Doughnut } from 'react-chartjs-2';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import blockchainLogo from './assets/blockchain.svg';
-import Footer from './components/Footer';
-import sca from './assets/sca.png';
+import { ShieldCheck, ArrowLeft, Upload, Play, CheckCircle, AlertTriangle, XCircle, Copy, Code2, Activity, FileText } from 'lucide-react';
 import { toast } from "react-toastify";
+import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { motion, AnimatePresence } from 'framer-motion';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// --- ÖNEMLİ DEĞİŞİKLİK: BACKEND URL TANIMLAMASI ---
-// Eğer Vite kullanıyorsan .env dosyasından çeker, yoksa direkt linki kullanır.
-const API_URL = import.meta.env.VITE_API_URL;
+// Backend URL
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+const LoadingOverlay = () => {
+    const [scanText, setScanText] = useState("Initializing Scanner...");
+
+    useEffect(() => {
+        const texts = [
+            "Parsing Abstract Syntax Tree...",
+            "Checking Reentrancy Guards...",
+            "Analyzing Control Flow...",
+            "Verifying Overflow Protections...",
+            "Scanning for Logic Bombs...",
+            "Finalizing Security Score..."
+        ];
+        let i = 0;
+        const interval = setInterval(() => {
+            setScanText(texts[i % texts.length]);
+            i++;
+        }, 800);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <motion.div
+            className="loading-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+        >
+            <div className="scanner-container">
+                <div className="scanner-line"></div>
+                <Code2 size={48} className="scanner-icon" />
+            </div>
+            <h3 className="scanner-text">{scanText}</h3>
+            <div className="progress-bar">
+                <motion.div
+                    className="progress-fill"
+                    animate={{ width: ["0%", "100%"] }}
+                    transition={{ duration: 5, ease: "linear", repeat: Infinity }}
+                />
+            </div>
+        </motion.div>
+    );
+};
 
 const DetectionPage = () => {
+    const navigate = useNavigate();
     const [code, setCode] = useState('');
     const [result, setResult] = useState(null);
-    const [improvedCode, setImprovedCode] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [improvedCode, setImprovedCode] = useState(null);
     const [improving, setImproving] = useState(false);
     const fileInputRef = useRef(null);
-    const improvedRef = useRef(null);
-    const [msgIndex, setMsgIndex] = useState(0);
-    const navigate = useNavigate();
 
-    const messages = [
-        "Thanks for your patience…",
-        "Checking for vulnerabilities…",
-        "Analyzing contract logic…",
-        "Almost there…",
-        "Optimizing security checks…",
-        "Validating security rules…",
-        "Scanning for exploits…",
-        "Reviewing function logic…",
-        "Cross-checking dependencies…",
-        "Finalizing report…"
-    ];
-
-    // Rotating messages
-    useEffect(() => {
-        if (loading || improving) {
-            const interval = setInterval(() => {
-                setMsgIndex(prev => (prev + 1) % messages.length);
-            }, 3000);
-            return () => clearInterval(interval);
-        }
-    }, [loading, improving]);
-
-    useEffect(() => {
-        if (improvedCode && improvedRef.current) {
-            improvedRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    }, [improvedCode]);
-
-    /** -------- HANDLE FILE -------- **/
+    // --- HANDLERS ---
     const handleFile = (file) => {
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = (e) => {
-            const fileContent = e.target.result;
-            setCode(fileContent);  // direkt textarea içine yazıyoruz
-        };
+        reader.onload = (e) => setCode(e.target.result);
         reader.readAsText(file);
     };
 
-    /** -------- Upload Input -------- **/
-    const handleFileUpload = (e) => {
-        const file = e.target.files[0];
-        handleFile(file);
-        e.target.value = null; // aynı dosyayı tekrar yüklemek için
-    };
-
-    /** -------- Drag & Drop -------- **/
-    const handleDrop = (e) => {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        handleFile(file);
-    };
-
-    /** -------- ANALYZE CODE -------- **/
     const analyzeCode = async () => {
         if (!code.trim()) return;
         setLoading(true);
         setResult(null);
         setImprovedCode(null);
 
+        // Simulate a clearer loading experience with min time
+        const minTime = new Promise(resolve => setTimeout(resolve, 2000));
+
         try {
-            // DEĞİŞİKLİK BURADA: Localhost yerine API_URL kullanıldı
-            const response = await fetch(`${API_URL}/analyze`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code, user_id: "default_user" }),
-            });
+            const [response] = await Promise.all([
+                fetch(`${API_URL}/analyze`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code, user_id: "default_user" }),
+                }),
+                minTime
+            ]);
+
             const data = await response.json();
             setResult(data);
         } catch (error) {
-            console.error("Analyze Error:", error);
-            setResult({ status: 'Error', issues: [], risk_score: 0 });
-            toast.error("Connection failed! Check backend URL.");
+            console.error(error);
+            toast.error("Connection failed.");
         } finally {
             setLoading(false);
         }
     };
 
-    const clearResults = () => {
-        setCode('');
-        setResult(null);
-        setImprovedCode(null);
-    };
-
-    /** -------- IMPROVE CODE -------- **/
-    const makeBetter = async () => {
+    const improveCode = async () => {
         if (!result) return;
         setImproving(true);
-        setImprovedCode(null);
-
         try {
-            // DEĞİŞİKLİK BURADA: Localhost yerine API_URL kullanıldı
             const response = await fetch(`${API_URL}/improve`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -132,207 +116,209 @@ const DetectionPage = () => {
             const data = await response.json();
             setImprovedCode(data.improved_code);
         } catch (error) {
-            console.error("Improve Error:", error);
-            setImprovedCode("// Error improving code.");
-            toast.error("Improvement failed!");
+            toast.error("Improvement failed.");
         } finally {
             setImproving(false);
         }
     };
 
-    const getColor = (risk) => {
-        if (risk === 'Low') return '#00ff00';
-        if (risk === 'Medium') return '#ffcc00';
-        if (risk === 'High') return '#ff3300';
-        return '#fff';
+    // Helper to safe parse score
+    const safeScore = result ? Number(result.risk_score) : 0;
+
+    // Chart Data
+    const getRiskCount = (riskType) => {
+        if (!result || !result.issues) return 0;
+        return result.issues.filter(i => i.risk.toLowerCase() === riskType.toLowerCase()).length;
     };
 
-    const doughnutData = result ? {
-        labels: ['Low', 'Medium', 'High'],
+    const highRiskCount = getRiskCount('High');
+    const medRiskCount = getRiskCount('Medium');
+    const lowRiskCount = getRiskCount('Low');
+
+    // Strict Chart Logic: If score is Safe (<30), force chart to be 100% Green.
+    // Otherwise show the breakdown of risks.
+    const isActuallySafe = safeScore < 30;
+
+    const chartData = result ? {
+        labels: ['High Risk', 'Medium Risk', 'Low Risk', 'Safe'],
         datasets: [{
-            data: [
-                result.issues.filter(i => i.risk.toLowerCase() === 'low').length,
-                result.issues.filter(i => i.risk.toLowerCase() === 'medium').length,
-                result.issues.filter(i => i.risk.toLowerCase() === 'high').length,
-            ],
-            backgroundColor: ['#00ff00', '#ffcc00', '#ff3300'],
-            hoverOffset: 20,
+            data: isActuallySafe
+                ? [0, 0, 0, 1] // Force full green
+                : [highRiskCount, medRiskCount, lowRiskCount, 0], // Show risks
+            backgroundColor: ['#ff1744', '#ffea00', '#2979ff', '#00e676'],
+            borderColor: '#0a0a0a',
+            borderWidth: 2,
         }]
     } : null;
 
+    const [isExpanded, setIsExpanded] = useState(false);
+    const patchedCodeRef = useRef(null);
+
+    useEffect(() => {
+        if (improvedCode && patchedCodeRef.current) {
+            // Wait a tick for the animation to start
+            setTimeout(() => {
+                patchedCodeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                toast.success("Fix applied! Review the code below.");
+            }, 100);
+        }
+    }, [improvedCode]);
+
     return (
-        <>
-            <div className="detection-page">
+        <div className="detection-page">
+            <nav id="navbar" style={{ position: 'absolute' }}>
+                <div id="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                    <ArrowLeft size={18} /> BACK TO HOME
+                </div>
+            </nav>
 
-                <img
-                    src={sca}
-                    className="top-left-logo"
-                    alt="Logo"
-                    onClick={() => navigate('/')}
-                />
-                <img src={blockchainLogo} className="blockchain-logo" alt="Blockchain" />
+            <div className="detection-layout">
 
-                <div className="detection-container">
-
-                    <motion.h1
-                        initial={{ opacity: 0, y: -50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1 }}
-                    >
-                        Check Your Smart Contract
-                    </motion.h1>
-
-                    {/* CODE INPUT + FILE UPLOAD */}
-                    <div className="code-input-container">
-
+                {/* LEFT: EDITOR WINDOW */}
+                <div className="editor-window">
+                    <div className="window-header">
+                        <span>SOURCE CODE</span>
+                        <span>SOL - {code.length} chars</span>
+                    </div>
+                    <div className="editor-content" style={{ position: 'relative' }}>
                         <textarea
+                            className="code-textarea"
                             value={code}
                             onChange={(e) => setCode(e.target.value)}
-                            placeholder="Paste your Solidity code here..."
+                            placeholder="// Paste your Solidity contract here..."
+                            spellCheck="false"
                         />
-
-                        <div
-                            className="file-drop-area"
-                            onClick={() => fileInputRef.current.click()}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={handleDrop}
-                        >
-                            Drag & Drop file here or click to upload
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileUpload}
-                                style={{ display: 'none' }}
-                            />
-                        </div>
-
-                        {/* BUTTONS */}
-                        <div className="buttons">
-                            <button onClick={analyzeCode} disabled={loading || improving}>
-                                Analyze Code
-                            </button>
-
-                            {result && (
-                                <button onClick={() => {
-                                    clearResults();
-                                    toast.warning("All clear!", {
-                                        icon: "📋",
-                                    });
-                                }} className="clear-btn">
-                                    Clear
-                                </button>
-
-                            )}
-                        </div>
-
-                        {/* SPINNER */}
                         <AnimatePresence>
-                            {(loading || improving) && (
-                                <motion.div
-                                    className="spinner-container"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                >
-                                    <div className="spinner"></div>
-                                    <p>{messages[msgIndex]}</p>
-                                </motion.div>
-                            )}
+                            {loading && <LoadingOverlay />}
                         </AnimatePresence>
                     </div>
+                    <div className="action-bar">
+                        <span className="upload-link" onClick={() => fileInputRef.current.click()}>
+                            <Upload size={14} style={{ marginRight: 5 }} /> Upload File
+                        </span>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            onChange={(e) => handleFile(e.target.files[0])}
+                        />
 
-                    {/* RESULTS */}
-                    {result && (
-                        <div className="results-wrapper">
-                            <div className="results-grid">
+                        <button className="analyze-btn" onClick={analyzeCode} disabled={loading}>
+                            {loading ? "SCANNING..." : "RUN AUDIT"} <Play size={14} style={{ marginLeft: 5 }} />
+                        </button>
+                    </div>
+                </div>
 
-                                {/* LEFT — RISK LIST */}
-                                <div className="risk-list">
-                                    <h3>Detected Risks</h3>
+                {/* RIGHT: RISK HUD */}
+                <div className="risk-panel">
 
-                                    {result.issues.length > 0 ? (
-                                        <ul>
-                                            {result.issues.map((issue, idx) => (
-                                                <li
-                                                    key={idx}
-                                                    style={{
-                                                        borderLeft: `5px solid ${getColor(issue.risk)}`
-                                                    }}
-                                                >
-                                                    <strong>{issue.issue}</strong> | Risk: {issue.risk}
-                                                    <br />
-                                                    <span>Solution: {issue.solution}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p>No issues detected.</p>
-                                    )}
+                    {result ? (
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="results-container"
+                        >
+                            <div className="score-header">
+                                <div className="chart-wrapper">
+                                    <div className="chart-inner-text">
+                                        <span className="score-val">{result.risk_score}</span>
+                                        <span className="score-label">SCORE</span>
+                                    </div>
+                                    <Doughnut
+                                        data={chartData}
+                                        options={{
+                                            cutout: '75%',
+                                            plugins: { legend: { display: false } }
+                                        }}
+                                    />
                                 </div>
-
-                                {/* RIGHT — CHART + IMPROVE */}
-                                <div className="chart-improve">
-
-                                    {doughnutData && (
-                                        <div className="chart-box">
-                                            <Doughnut data={doughnutData} />
-                                            <p>Risk Score: {result.risk_score}</p>
-                                        </div>
-                                    )}
-
-                                    {/* RISK SCORE 0 İSE BU BUTON GÖZÜKMEYECEK */}
-                                    {result.risk_score > 0 && result.issues.length > 0 && (
-                                        <button
-                                            className="improve-btn"
-                                            onClick={makeBetter}
-                                            disabled={improving}
-                                        >
-                                            {improving ? "Improving..." : "Improve Code"}
-                                        </button>
-                                    )}
-
+                                <div className="score-details">
+                                    <p className={
+                                        result.risk_score < 30 ? "status-safe" :
+                                            result.risk_score < 70 ? "status-warning" : "status-risk"
+                                    }>
+                                        {result.risk_score < 30 ? "PASSED" : result.risk_score < 70 ? "WARNING" : "CRITICAL"}
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* IMPROVED CODE BOX */}
-                            {improvedCode && (
-                                <div ref={improvedRef} className="improved-box" style={{ position: 'relative' }}>
-                                    <h3>Improved Code</h3>
+                            <div className="issue-feed">
+                                <div className="issue-header">VULNERABILITY REPORT</div>
+                                {result.issues.length === 0 ? (
+                                    <div className="empty-state">
+                                        <CheckCircle size={40} color="#00e676" />
+                                        <p>No vulnerabilities detected.</p>
+                                    </div>
+                                ) : (
+                                    result.issues.map((issue, idx) => (
+                                        <div className="issue-card" key={idx}>
+                                            <div className="issue-card-header">
+                                                <span className={`risk-badge ${issue.risk.toLowerCase()}`}>{issue.risk}</span>
+                                                <h4>{issue.issue}</h4>
+                                            </div>
+                                            <p className="issue-solution">Fix: {issue.solution}</p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
 
-                                    <button
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(improvedCode);
-                                            toast.success("Copied to clipboard!", {
-                                                icon: "📋",
-                                            });
-                                        }}
-                                        style={{
-                                            position: 'absolute',
-                                            top: '10px',
-                                            right: '10px',
-                                            padding: '5px 10px',
-                                            fontSize: '12px',
-                                            cursor: 'pointer',
-                                            borderRadius: '5px',
-                                            border: 'none',
-                                            backgroundColor: '#00bfff',
-                                            color: '#fff'
-                                        }}
-                                    >
-                                        Copy
-                                    </button>
-                                    <pre>{improvedCode}</pre>
-                                </div>
+                            {safeScore >= 20 && (
+                                <button
+                                    className="btn-primary"
+                                    onClick={improveCode}
+                                    disabled={improving}
+                                    style={{ marginTop: 20, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                                >
+                                    {improving ? <Activity className="spin-icon" /> : <Code2 />}
+                                    {improving ? " PATCHING..." : " AUTO-FIX CODE"}
+                                </button>
                             )}
 
+                        </motion.div>
+                    ) : (
+                        <div className="placeholder-panel">
+                            <ShieldCheck size={64} style={{ opacity: 0.2 }} />
+                            <p>Ready to audit.</p>
                         </div>
                     )}
 
-                </div>
-            </div>
+                    {/* PATCHED CODE MODAL / PANEL */}
+                    <AnimatePresence>
+                        {improvedCode && (
+                            <motion.div
+                                className="patched-code-panel"
+                                ref={patchedCodeRef}
+                                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ type: "spring", stiffness: 100 }}
+                            >
+                                <div className="window-header" style={{ borderColor: '#00e676', background: 'rgba(0, 230, 118, 0.1)', boxShadow: '0 0 15px rgba(0,230,118,0.1)' }}>
+                                    <span style={{ color: '#00e676', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 'bold' }}>
+                                        <CheckCircle size={16} /> PATCH COMPLETE
+                                    </span>
+                                    <div style={{ display: 'flex', gap: 10 }}>
+                                        <button onClick={() => setIsExpanded(!isExpanded)}>
+                                            {isExpanded ? "COLLAPSE" : "EXPAND"}
+                                        </button>
+                                        <button onClick={() => {
+                                            navigator.clipboard.writeText(improvedCode);
+                                            toast.success("Patched code copied!");
+                                        }}>
+                                            <Copy size={14} /> COPY
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className={`code-preview ${isExpanded ? 'expanded' : ''}`}>
+                                    <pre>{improvedCode}</pre>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-            <Footer />
-        </>
+                </div>
+
+            </div>
+        </div>
     );
 };
 
