@@ -92,7 +92,7 @@ Code:
     # --- DÜZELTME 2: Model İsmi (2.5 henüz yok, 1.5 kararlı sürüm) ---
     # Yanlış model ismi sunucuyu çökertip CORS hatasına sebep oluyordu.
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt)
         raw = response.text
         cleaned = clean_gemini_output(raw)
@@ -139,7 +139,7 @@ Return **only** the corrected code, nothing else.
 """
     # --- DÜZELTME 2: Model İsmi (Burada da 1.5 yaptık) ---
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt)
         improved_code = response.text.strip() if response.text else "// Could not generate improved code"
     except Exception as e:
