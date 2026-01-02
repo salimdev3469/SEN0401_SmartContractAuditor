@@ -13,7 +13,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 // --- ÖNEMLİ DEĞİŞİKLİK: BACKEND URL TANIMLAMASI ---
 // Eğer Vite kullanıyorsan .env dosyasından çeker, yoksa direkt linki kullanır.
-const API_URL = "https://smart-contract-auditor-wm14.onrender.com"; 
+const API_URL = import.meta.env.VITE_API_URL;
 
 const DetectionPage = () => {
     const [code, setCode] = useState('');
